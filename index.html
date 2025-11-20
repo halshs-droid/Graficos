@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gráficos — Patrones y Relaciones</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial; margin:20px; background:#fbfcfd; color:#0f172a; }
+    .container { max-width:1000px; margin:0 auto; }
+    h1{ font-size:20px; margin-bottom:6px }
+    p{ color:#475569; margin-top:0; }
+    .grid{ display:flex; gap:18px; flex-wrap:wrap; }
+    .card{ background:#fff; border-radius:12px; padding:14px; box-shadow:0 6px 18px rgba(15,23,42,0.06); flex:1 1 460px; }
+    canvas{ max-width:100%; height:360px !important; }
+    table{ width:100%; border-collapse:collapse; margin-top:8px; font-size:13px }
+    th,td{ padding:8px; border-bottom:1px solid #eef2f6; text-align:left }
+    .legend-note{ font-size:13px; color:#64748b; margin-top:10px }
+    .download { margin-top:10px; }
+    button { background:#f3f4f6; border:0; padding:8px 10px; border-radius:8px; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Visualización — Patrones y Relaciones</h1>
+    <p>Basado en el análisis narrativo: correlación antigüedad vs diversificación, segmentación de nicho, relación edificaciones & tipo de mercado y estrategia de redes.</p>
+
+    <div class="grid">
+      <div class="card">
+        <strong>Gráfico de barras — Diversificación por Empresa</strong>
+        <canvas id="barChart"></canvas>
+        <div class="legend-note">Diversificación = (#Redes) + (#Edificaciones) + (#Tipos de mercado)</div>
+      </div>
+
+      <div class="card">
+        <strong>Gráfico de torta — Estrategia de Redes Sociales</strong>
+        <canvas id="pieChart"></canvas>
+        <div class="legend-note">Multiplataforma (4+) vs Facebook-only (1) vs Intermedia (2-3)</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <strong>Tabla de valores usados</strong>
+      <table>
+        <thead><tr><th>Empresa</th><th>Redes</th><th>Edificaciones</th><th>Tipos</th><th>Diversificación</th><th>Año inicio</th></tr></thead>
+        <tbody>
+          <tr><td>Yohersa</td><td>4</td><td>3</td><td>4</td><td>11</td><td>1960</td></tr>
+          <tr><td>Covema</td><td>4</td><td>3</td><td>2</td><td>9</td><td>2003</td></tr>
+          <tr><td>Javisac</td><td>1</td><td>2</td><td>2</td><td>5</td><td>—</td></tr>
+          <tr><td>Aceros Flovicsa</td><td>2</td><td>2</td><td>1</td><td>5</td><td>2008</td></tr>
+          <tr><td>Aceros Ugartesa</td><td>2</td><td>2</td><td>1</td><td>5</td><td>2013</td></tr>
+        </tbody>
+      </table>
+
+      <div class="download">
+        <button onclick="downloadPNG('barChart','grafico_barras_diversificacion.png')">Descargar barra (PNG)</button>
+        <button onclick="downloadPNG('pieChart','grafico_torta_redes.png')">Descargar torta (PNG)</button>
+      </div>
+    </div>
+
+    <p style="margin-top:14px;color:#334155">
+      Interpretación rápida: Las empresas más antiguas (Yohersa, Covema) lideran la diversificación. Tres competidores (Javisac, Flovicsa, Ugartesa) muestran presencia reducida en redes (Facebook-only), lo que evidencia oportunidades de diferenciación digital.
+    </p>
+  </div>
+
+<script>
+  // Datos (tomados del análisis narrativo)
+  const empresas = ['Yohersa','Covema','Javisac','Aceros Flovicsa','Aceros Ugartesa'];
+  const redes = [4,4,1,2,2];
+  const edificaciones = [3,3,2,2,2];
+  const tipos = [4,2,2,1,1];
+  const divers = empresas.map((_,i)=> redes[i] + edificaciones[i] + tipos[i]);
+
+  // Bar chart — Diversificación
+  const ctxBar = document.getElementById('barChart').getContext('2d');
+  const barChart = new Chart(ctxBar, {
+    type: 'bar',
+    data: {
+      labels: empresas,
+      datasets: [{
+        label: 'Diversificación (score)',
+        data: divers,
+        backgroundColor: [
+          'rgba(207,232,216,0.9)',
+          'rgba(248,226,242,0.9)',
+          'rgba(232,232,255,0.9)',
+          'rgba(255,243,205,0.9)',
+          'rgba(225,245,255,0.9)'
+        ],
+        borderColor: 'rgba(15,23,42,0.06)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { precision:0 } } }
+    }
+  });
+
+  // Pie chart — estrategia redes
+  const strategyCounts = {
+    'Multiplataforma (4+)': 2,
+    'Facebook-only (1)': 3,
+    'Intermedia (2-3)': 0
+  };
+  const pieLabels = Object.keys(strategyCounts);
+  const pieData = Object.values(strategyCounts);
+
+  const ctxPie = document.getElementById('pieChart').getContext('2d');
+  const pieChart = new Chart(ctxPie, {
+    type: 'pie',
+    data: {
+      labels: pieLabels,
+      datasets: [{
+        data: pieData,
+        backgroundColor: [
+          'rgba(207,232,216,0.9)',
+          'rgba(248,226,242,0.9)',
+          'rgba(232,232,255,0.9)'
+        ],
+        borderColor: 'rgba(15,23,42,0.06)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+
+  // Función para descargar PNG del canvas
+  function downloadPNG(canvasId, filename){
+    const canvas = document.getElementById(canvasId);
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png', 1.0);
+    link.download = filename;
+    link.click();
+  }
+</script>
+</body>
+</html>
